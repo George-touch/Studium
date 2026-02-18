@@ -218,6 +218,26 @@
         </div>
     </div>
 
+    <!-- Модальное окно массового добавления -->
+    <div id="bulkAddModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeBulkModal">&times;</span>
+            <h2>Добавить список слов</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Вставьте слова через запятую или каждое на новой строке
+            </p>
+            <p style="color: var(--text-tertiary); font-size: 14px; margin-bottom: 16px;">
+                <strong>Формат 1:</strong> hello, world, apple<br>
+                <strong>Формат 2:</strong> hello - привет, world - мир
+            </p>
+            <textarea id="bulkWordsInput" placeholder="hello, world, apple&#10;или&#10;hello - привет&#10;world - мир" rows="10" style="width: 100%; padding: 12px; border: 1px solid var(--separator); border-radius: 10px; font-size: 16px; margin-bottom: 16px;"></textarea>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button id="cancelBulkBtn" class="btn-text">Отмена</button>
+                <button id="submitBulkBtn" class="btn-primary">Добавить</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>

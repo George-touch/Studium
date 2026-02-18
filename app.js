@@ -79,7 +79,13 @@ function initApp() {
     document.querySelector('.close').addEventListener('click', closeModal);
     window.addEventListener('click', (e) => {
         if (e.target.id === 'studentModal') closeModal();
+        if (e.target.id === 'bulkAddModal') closeBulkModal();
     });
+    
+    // Модальное окно массового добавления
+    document.getElementById('closeBulkModal').addEventListener('click', closeBulkModal);
+    document.getElementById('cancelBulkBtn').addEventListener('click', closeBulkModal);
+    document.getElementById('submitBulkBtn').addEventListener('click', submitBulkWords);
 
     // Вкладки модального окна
     document.querySelectorAll('#studentModal .tab-btn').forEach(btn => {
@@ -458,61 +464,70 @@ async function translateWord(word, fromLang) {
 }
 
 // Массовое добавление слов
+let bulkAddContext = null; // Хранит контекст (для ученика или для модального окна)
+
 function showBulkAddDialog() {
-    const language = document.getElementById('wordLanguage').value;
-    const languageName = language === 'en' ? 'английского' : 'испанского';
-    
-    const text = prompt(
-        `Добавить список слов (${languageName} → русский)\n\n` +
-        `Формат 1 (автоперевод):\n` +
-        `hello\n` +
-        `world\n` +
-        `apple\n\n` +
-        `Формат 2 (с переводом):\n` +
-        `hello - привет\n` +
-        `world - мир\n` +
-        `apple - яблоко\n\n` +
-        `Вставьте список слов:`
-    );
-    
-    if (text) {
-        processBulkWords(text, language, currentUser.id, false);
-    }
+    bulkAddContext = {
+        language: document.getElementById('wordLanguage').value,
+        userId: currentUser.id,
+        isModal: false
+    };
+    document.getElementById('bulkAddModal').classList.add('active');
+    document.getElementById('bulkWordsInput').value = '';
+    document.getElementById('bulkWordsInput').focus();
 }
 
 function showBulkAddModalDialog() {
     if (!currentModalStudentId) return;
     
-    const language = document.getElementById('modalWordLanguage').value;
-    const languageName = language === 'en' ? 'английского' : 'испанского';
+    bulkAddContext = {
+        language: document.getElementById('modalWordLanguage').value,
+        userId: currentModalStudentId,
+        isModal: true
+    };
+    document.getElementById('bulkAddModal').classList.add('active');
+    document.getElementById('bulkWordsInput').value = '';
+    document.getElementById('bulkWordsInput').focus();
+}
+
+function closeBulkModal() {
+    document.getElementById('bulkAddModal').classList.remove('active');
+    bulkAddContext = null;
+}
+
+function submitBulkWords() {
+    if (!bulkAddContext) return;
     
-    const text = prompt(
-        `Добавить список слов (${languageName} → русский)\n\n` +
-        `Формат 1 (автоперевод):\n` +
-        `hello\n` +
-        `world\n` +
-        `apple\n\n` +
-        `Формат 2 (с переводом):\n` +
-        `hello - привет\n` +
-        `world - мир\n` +
-        `apple - яблоко\n\n` +
-        `Вставьте список слов:`
-    );
+    const text = document.getElementById('bulkWordsInput').value.trim();
     
-    if (text) {
-        processBulkWords(text, language, currentModalStudentId, true);
+    if (!text) {
+        alert('Введите слова');
+        return;
     }
+    
+    closeBulkModal();
+    processBulkWords(text, bulkAddContext.language, bulkAddContext.userId, bulkAddContext.isModal);
 }
 
 async function processBulkWords(text, language, userId, isModal) {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    // Разделяем по переносам строк И по запятым
+    let items = [];
     
-    if (lines.length === 0) {
+    // Сначала по строкам
+    const lines = text.split('\n');
+    
+    for (const line of lines) {
+        // Каждую строку разделяем по запятым
+        const parts = line.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        items.push(...parts);
+    }
+    
+    if (items.length === 0) {
         alert('Список пуст');
         return;
     }
     
-    if (lines.length > 100) {
+    if (items.length > 100) {
         alert('Максимум 100 слов за раз');
         return;
     }
@@ -521,21 +536,20 @@ async function processBulkWords(text, language, userId, isModal) {
     let errors = [];
     
     // Показать прогресс
-    const progressMsg = `Добавляю ${lines.length} слов...`;
-    console.log(progressMsg);
+    console.log(`Добавляю ${items.length} слов...`);
     
-    for (const line of lines) {
+    for (const item of items) {
         try {
             let original, translation;
             
-            // Проверяем формат с переводом
-            if (line.includes(' - ')) {
-                const parts = line.split(' - ');
+            // Проверяем формат с переводом (через дефис)
+            if (item.includes(' - ')) {
+                const parts = item.split(' - ');
                 original = parts[0].trim();
                 translation = parts.slice(1).join(' - ').trim();
             } else {
                 // Автоперевод
-                original = line.trim();
+                original = item.trim();
                 translation = await translateWord(original, language);
                 
                 if (!translation) {
@@ -553,7 +567,7 @@ async function processBulkWords(text, language, userId, isModal) {
                 addedCount++;
             }
         } catch (error) {
-            errors.push(`Ошибка при добавлении: ${line}`);
+            errors.push(`Ошибка: ${item}`);
             console.error(error);
         }
     }
@@ -566,7 +580,7 @@ async function processBulkWords(text, language, userId, isModal) {
     }
     
     // Показать результат
-    let message = `Добавлено слов: ${addedCount} из ${lines.length}`;
+    let message = `Добавлено слов: ${addedCount} из ${items.length}`;
     if (errors.length > 0) {
         message += `\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`;
         if (errors.length > 5) {
