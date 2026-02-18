@@ -2,7 +2,7 @@
   "name": "Studiûm – Изучение языков",
   "short_name": "Studiûm",
   "description": "Современное приложение для изучения английского и испанского языков",
-  "start_url": "/",
+  "start_url": "https://george-touch.github.io/Studium/",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#007AFF",
