@@ -251,14 +251,22 @@ async function addWord() {
     await loadVocabulary();
 }
 
-window.deleteWord = async function(wordId) {
+window.deleteWord = async function(wordId, studentId = null) {
+    const userId = studentId || currentUser.id;
     if (confirm('Удалить это слово?')) {
-        await db.deleteWord(currentUser.id, wordId);
-        await loadVocabulary();
+        await db.deleteWord(userId, wordId);
+        if (studentId) {
+            // Учитель - обновить модальное окно
+            await showStudentDetails(studentId);
+        } else {
+            // Ученик - обновить свой список
+            await loadVocabulary();
+        }
     }
 }
 
-window.editWord = async function(wordId, language, original, translation) {
+window.editWord = async function(wordId, language, original, translation, studentId = null) {
+    const userId = studentId || currentUser.id;
     const newOriginal = prompt('Слово на иностранном языке:', original);
     if (newOriginal === null) return;
     
@@ -270,22 +278,37 @@ window.editWord = async function(wordId, language, original, translation) {
         return;
     }
     
-    await db.updateWord(currentUser.id, wordId, {
+    await db.updateWord(userId, wordId, {
         language,
         original: newOriginal.trim(),
         translation: newTranslation.trim()
     });
-    await loadVocabulary();
-}
-
-window.deleteDiaryEntry = async function(entryId) {
-    if (confirm('Удалить эту запись?')) {
-        await db.deleteDiaryEntry(currentUser.id, entryId);
-        await loadDiary();
+    
+    if (studentId) {
+        // Учитель - обновить модальное окно
+        await showStudentDetails(studentId);
+    } else {
+        // Ученик - обновить свой список
+        await loadVocabulary();
     }
 }
 
-window.editDiaryEntry = async function(entryId, text) {
+window.deleteDiaryEntry = async function(entryId, studentId = null) {
+    const userId = studentId || currentUser.id;
+    if (confirm('Удалить эту запись?')) {
+        await db.deleteDiaryEntry(userId, entryId);
+        if (studentId) {
+            // Учитель - обновить модальное окно
+            await showStudentDetails(studentId);
+        } else {
+            // Ученик - обновить свой список
+            await loadDiary();
+        }
+    }
+}
+
+window.editDiaryEntry = async function(entryId, text, studentId = null) {
+    const userId = studentId || currentUser.id;
     const newText = prompt('Редактировать запись:', text);
     if (newText === null) return;
     
@@ -294,8 +317,15 @@ window.editDiaryEntry = async function(entryId, text) {
         return;
     }
     
-    await db.updateDiaryEntry(currentUser.id, entryId, newText.trim());
-    await loadDiary();
+    await db.updateDiaryEntry(userId, entryId, newText.trim());
+    
+    if (studentId) {
+        // Учитель - обновить модальное окно
+        await showStudentDetails(studentId);
+    } else {
+        // Ученик - обновить свой список
+        await loadDiary();
+    }
 }
 
 function filterWords(lang) {
@@ -567,6 +597,10 @@ window.showStudentDetails = async function(studentId) {
             <div class="entry-item">
                 <div class="entry-date">${formatDate(entry.date)}</div>
                 <div class="entry-text">${escapeHtml(entry.text)}</div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button class="btn-secondary" onclick="editDiaryEntry('${entry.id}', '${escapeHtml(entry.text).replace(/'/g, "\\'")}', '${studentId}')">✏️ Редактировать</button>
+                    <button class="btn-danger" onclick="deleteDiaryEntry('${entry.id}', '${studentId}')">Удалить</button>
+                </div>
             </div>
         `).join('');
     }
@@ -586,6 +620,10 @@ window.showStudentDetails = async function(studentId) {
                             <div class="word-original">${escapeHtml(word.original)}</div>
                             <div class="word-translation">${escapeHtml(word.translation)}</div>
                             <span class="word-lang">${word.language === 'en' ? 'EN' : 'ES'}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-secondary" onclick="editWord('${word.id}', '${word.language}', '${escapeHtml(word.original).replace(/'/g, "\\'")}', '${escapeHtml(word.translation).replace(/'/g, "\\'")}', '${studentId}')">✏️</button>
+                            <button class="btn-danger" onclick="deleteWord('${word.id}', '${studentId}')">🗑️</button>
                         </div>
                     </div>
                 `).join('')}
