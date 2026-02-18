@@ -175,9 +175,22 @@
                 <button class="tab-btn" data-tab="modalVocabulary">Словарик</button>
             </div>
             <div id="modalDiaryTab" class="tab-content active">
+                <div class="add-entry" style="margin-bottom: 16px;">
+                    <textarea id="modalDiaryText" placeholder="Добавить запись для ученика..." rows="3"></textarea>
+                    <button id="addModalDiaryBtn" class="btn-secondary">Добавить запись</button>
+                </div>
                 <div id="modalDiaryContent"></div>
             </div>
             <div id="modalVocabularyTab" class="tab-content">
+                <div class="add-word" style="margin-bottom: 16px;">
+                    <select id="modalWordLanguage">
+                        <option value="en">EN</option>
+                        <option value="es">ES</option>
+                    </select>
+                    <input type="text" id="modalWordOriginal" placeholder="Слово">
+                    <input type="text" id="modalWordTranslation" placeholder="Перевод">
+                    <button id="addModalWordBtn" class="btn-secondary">Добавить</button>
+                </div>
                 <div id="modalVocabularyContent"></div>
             </div>
         </div>

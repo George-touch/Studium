@@ -9,6 +9,7 @@ let flashcards = [];
 let testQuestions = [];
 let currentQuestion = 0;
 let testAnswers = [];
+let currentModalStudentId = null; // ID текущего ученика в модальном окне
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -70,6 +71,10 @@ function initApp() {
     document.querySelectorAll('#studentModal .tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchModalTab(btn.dataset.tab));
     });
+
+    // Кнопки модального окна (для учителя)
+    document.getElementById('addModalDiaryBtn').addEventListener('click', addModalDiaryEntry);
+    document.getElementById('addModalWordBtn').addEventListener('click', addModalWord);
 }
 
 // Вход/Выход
@@ -579,6 +584,8 @@ window.deleteStudent = async function(studentId) {
 
 // Модальное окно с данными ученика
 window.showStudentDetails = async function(studentId) {
+    currentModalStudentId = studentId; // Сохраняем ID для добавления записей
+    
     const students = await db.getStudents();
     const student = students.find(s => s.id === studentId);
     
@@ -645,6 +652,45 @@ function switchModalTab(tabName) {
     
     document.getElementById('modalDiaryTab').classList.toggle('active', tabName === 'modalDiary');
     document.getElementById('modalVocabularyTab').classList.toggle('active', tabName === 'modalVocabulary');
+}
+
+// Добавление записей учителем в модальном окне
+async function addModalDiaryEntry() {
+    if (!currentModalStudentId) return;
+    
+    const text = document.getElementById('modalDiaryText').value.trim();
+    
+    if (!text) {
+        alert('Введите текст записи');
+        return;
+    }
+    
+    await db.addDiaryEntry(currentModalStudentId, text);
+    document.getElementById('modalDiaryText').value = '';
+    await showStudentDetails(currentModalStudentId);
+}
+
+async function addModalWord() {
+    if (!currentModalStudentId) return;
+    
+    const language = document.getElementById('modalWordLanguage').value;
+    const original = document.getElementById('modalWordOriginal').value.trim();
+    const translation = document.getElementById('modalWordTranslation').value.trim();
+    
+    if (!original || !translation) {
+        alert('Заполните все поля');
+        return;
+    }
+    
+    await db.addWord(currentModalStudentId, {
+        language,
+        original,
+        translation
+    });
+    
+    document.getElementById('modalWordOriginal').value = '';
+    document.getElementById('modalWordTranslation').value = '';
+    await showStudentDetails(currentModalStudentId);
 }
 
 // Утилиты
