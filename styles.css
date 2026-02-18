@@ -1,0 +1,768 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* iOS Colors */
+    --primary: #007AFF;
+    --primary-dark: #0051D5;
+    --secondary: #34C759;
+    --danger: #FF3B30;
+    --bg: #F2F2F7;
+    --surface: #FFFFFF;
+    --text: #000000;
+    --text-secondary: #3C3C43;
+    --text-tertiary: #8E8E93;
+    --border: #C6C6C8;
+    --separator: rgba(60, 60, 67, 0.29);
+    --shadow: rgba(0, 0, 0, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary: #0A84FF;
+        --primary-dark: #0077ED;
+        --secondary: #30D158;
+        --danger: #FF453A;
+        --bg: #000000;
+        --surface: #1C1C1E;
+        --text: #FFFFFF;
+        --text-secondary: #EBEBF5;
+        --text-tertiary: #8E8E93;
+        --border: #38383A;
+        --separator: rgba(84, 84, 88, 0.65);
+        --shadow: rgba(0, 0, 0, 0.3);
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.47059;
+    font-size: 17px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.screen {
+    display: none;
+    min-height: 100vh;
+}
+
+.screen.active {
+    display: block;
+}
+
+.container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px 16px;
+}
+
+/* Навигация в iOS стиле */
+.navbar {
+    background: var(--surface);
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--separator);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar h2 {
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.35px;
+}
+
+/* Логотип приложения */
+.app-logo {
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, #5856D6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+}
+
+/* Экран входа */
+.login-box {
+    max-width: 375px;
+    margin: 80px auto;
+    background: var(--surface);
+    padding: 32px 24px;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px var(--shadow);
+    text-align: center;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border: 0.5px solid var(--separator);
+    border-radius: 10px;
+    font-size: 17px;
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.2s;
+}
+
+.login-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+}
+
+.login-box input::placeholder {
+    color: var(--text-tertiary);
+}
+
+/* Кнопки в iOS стиле */
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    letter-spacing: -0.41px;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: scale(0.99);
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:active {
+    transform: scale(0.96);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:active {
+    transform: scale(0.96);
+}
+
+.btn-text {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 400;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.btn-text:hover {
+    background: rgba(0, 122, 255, 0.1);
+}
+
+/* Вкладки в iOS стиле */
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    padding: 4px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-secondary);
+    min-width: 80px;
+}
+
+.tab-btn:hover {
+    background: var(--bg);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Карточки в iOS стиле */
+.add-entry, .add-word, .card-settings, .test-settings, .add-student {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+.add-entry textarea {
+    width: 100%;
+    padding: 12px;
+    border: 0.5px solid var(--separator);
+    border-radius: 10px;
+    font-size: 17px;
+    font-family: inherit;
+    margin-bottom: 12px;
+    resize: vertical;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100px;
+}
+
+.add-entry textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+}
+
+/* Списки */
+.entries-list, .words-list, .students-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.entry-item, .word-item, .student-card {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+    transition: all 0.2s;
+}
+
+.student-card {
+    cursor: pointer;
+}
+
+.student-card:hover {
+    box-shadow: 0 4px 12px var(--shadow);
+    transform: translateY(-2px);
+}
+
+.student-card:active {
+    transform: translateY(0);
+}
+
+.entry-date {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.entry-text {
+    color: var(--text);
+    line-height: 1.47059;
+}
+
+/* Словарик */
+.add-word {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.add-word select,
+.add-word input {
+    padding: 10px 12px;
+    border: 0.5px solid var(--separator);
+    border-radius: 10px;
+    font-size: 17px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.add-word select:focus,
+.add-word input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: var(--surface);
+    border: 0.5px solid var(--separator);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.word-content {
+    flex: 1;
+}
+
+.word-original {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.45px;
+}
+
+.word-translation {
+    color: var(--text-secondary);
+    margin-top: 4px;
+    font-size: 15px;
+}
+
+.word-lang {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Карточки для повторения */
+.flashcard-container {
+    min-height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.flashcard {
+    width: 100%;
+    max-width: 500px;
+    min-height: 280px;
+    background: var(--surface);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 40px;
+    text-align: center;
+}
+
+.flashcard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px var(--shadow);
+}
+
+.flashcard:active {
+    transform: translateY(-4px);
+}
+
+.flashcard.flipped {
+    background: linear-gradient(135deg, var(--primary) 0%, #5856D6 100%);
+    color: white;
+}
+
+.flashcard-word {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.8px;
+}
+
+.flashcard-translation {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+.flashcard-hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 24px;
+}
+
+.flashcard-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.flashcard-progress {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Тесты */
+.test-question {
+    background: var(--surface);
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.question-text {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: var(--text);
+    font-weight: 600;
+    letter-spacing: -0.6px;
+}
+
+.question-number {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.answer-options {
+    display: grid;
+    gap: 12px;
+}
+
+.answer-option {
+    padding: 16px;
+    background: var(--bg);
+    border: 1.5px solid var(--separator);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 17px;
+    font-weight: 500;
+}
+
+.answer-option:hover {
+    border-color: var(--primary);
+    background: var(--surface);
+    transform: scale(1.01);
+}
+
+.answer-option:active {
+    transform: scale(0.99);
+}
+
+.answer-option.selected {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+}
+
+.answer-option.correct {
+    border-color: var(--secondary);
+    background: var(--secondary);
+    color: white;
+}
+
+.answer-option.incorrect {
+    border-color: var(--danger);
+    background: var(--danger);
+    color: white;
+}
+
+.test-result {
+    background: var(--surface);
+    padding: 48px 24px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+.result-score {
+    font-size: 72px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 20px 0;
+    letter-spacing: -2px;
+}
+
+/* Панель учителя */
+.student-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.student-info h4 {
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.student-stats {
+    display: flex;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: 15px;
+}
+
+.add-student {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto auto;
+    gap: 12px;
+}
+
+.add-student input,
+.add-student select {
+    padding: 10px 12px;
+    border: 0.5px solid var(--separator);
+    border-radius: 10px;
+    font-size: 17px;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.students-manage-list {
+    display: grid;
+    gap: 12px;
+}
+
+.student-manage-item {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--surface);
+    padding: 32px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 32px;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.close:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* Сообщения об ошибках */
+.error-message {
+    color: var(--danger);
+    margin-top: 12px;
+    text-align: center;
+    font-size: 15px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px 12px;
+    }
+    
+    .add-word {
+        grid-template-columns: 1fr;
+    }
+    
+    .add-student {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-settings,
+    .test-settings {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .flashcard {
+        min-height: 240px;
+        padding: 24px;
+    }
+    
+    .flashcard-word {
+        font-size: 24px;
+    }
+    
+    .flashcard-translation {
+        font-size: 20px;
+    }
+    
+    .app-logo {
+        font-size: 40px;
+    }
+    
+    .result-score {
+        font-size: 56px;
+    }
+}
+
+/* Улучшенная прокрутка */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-tertiary) transparent;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--text-tertiary);
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+}

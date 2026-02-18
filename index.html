@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studiûm – Изучение языков</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Экран входа -->
+    <div id="loginScreen" class="screen active">
+        <div class="container">
+            <div class="login-box">
+                <h1 class="app-logo">Studiûm</h1>
+                <p class="subtitle">Система изучения языков</p>
+                <form id="loginForm">
+                    <input type="text" id="loginUsername" placeholder="Логин" required>
+                    <input type="password" id="loginPassword" placeholder="Пароль" required>
+                    <button type="submit" class="btn-primary">Войти</button>
+                </form>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Главный экран ученика -->
+    <div id="studentScreen" class="screen">
+        <nav class="navbar">
+            <h2 id="studentName">Ученик</h2>
+            <button id="logoutBtn" class="btn-text">Выход</button>
+        </nav>
+        
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="diary">📝 Дневник</button>
+                <button class="tab-btn" data-tab="vocabulary">📖 Словарик</button>
+                <button class="tab-btn" data-tab="cards">🎴 Карточки</button>
+                <button class="tab-btn" data-tab="test">✅ Тест</button>
+            </div>
+
+            <!-- Вкладка: Дневник -->
+            <div id="diaryTab" class="tab-content active">
+                <h3>Мой дневник</h3>
+                <div class="add-entry">
+                    <textarea id="diaryText" placeholder="Что изучал сегодня? Какие трудности возникли?" rows="4"></textarea>
+                    <button id="addDiaryBtn" class="btn-primary">Добавить запись</button>
+                </div>
+                <div id="diaryEntries" class="entries-list"></div>
+            </div>
+
+            <!-- Вкладка: Словарик -->
+            <div id="vocabularyTab" class="tab-content">
+                <h3>Мои слова</h3>
+                <div class="add-word">
+                    <select id="wordLanguage">
+                        <option value="en">Английский</option>
+                        <option value="es">Испанский</option>
+                    </select>
+                    <input type="text" id="wordOriginal" placeholder="Слово на иностранном">
+                    <input type="text" id="wordTranslation" placeholder="Перевод на русский">
+                    <button id="addWordBtn" class="btn-primary">Добавить слово</button>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-lang="all">Все</button>
+                    <button class="filter-btn" data-lang="en">Английский</button>
+                    <button class="filter-btn" data-lang="es">Испанский</button>
+                </div>
+                <div id="wordsList" class="words-list"></div>
+            </div>
+
+            <!-- Вкладка: Карточки -->
+            <div id="cardsTab" class="tab-content">
+                <h3>Карточки для повторения</h3>
+                <div class="card-settings">
+                    <label>
+                        Язык:
+                        <select id="cardsLanguage">
+                            <option value="all">Все языки</option>
+                            <option value="en">Английский</option>
+                            <option value="es">Испанский</option>
+                        </select>
+                    </label>
+                    <button id="startCardsBtn" class="btn-primary">Начать повторение</button>
+                </div>
+                <div id="flashcardContainer" class="flashcard-container"></div>
+            </div>
+
+            <!-- Вкладка: Тест -->
+            <div id="testTab" class="tab-content">
+                <h3>Проверь себя</h3>
+                <div class="test-settings">
+                    <label>
+                        Язык:
+                        <select id="testLanguage">
+                            <option value="all">Все языки</option>
+                            <option value="en">Английский</option>
+                            <option value="es">Испанский</option>
+                        </select>
+                    </label>
+                    <label>
+                        Количество вопросов:
+                        <select id="testQuestions">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                        </select>
+                    </label>
+                    <button id="startTestBtn" class="btn-primary">Начать тест</button>
+                </div>
+                <div id="testContainer" class="test-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Главный экран учителя -->
+    <div id="teacherScreen" class="screen">
+        <nav class="navbar">
+            <h2>👨‍🏫 Панель учителя</h2>
+            <button id="teacherLogoutBtn" class="btn-text">Выход</button>
+        </nav>
+        
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="students">👥 Ученики</button>
+                <button class="tab-btn" data-tab="manage">⚙️ Управление</button>
+            </div>
+
+            <!-- Вкладка: Список учеников -->
+            <div id="studentsTab" class="tab-content active">
+                <h3>Мои ученики</h3>
+                <div id="studentsList" class="students-list"></div>
+            </div>
+
+            <!-- Вкладка: Управление -->
+            <div id="manageTab" class="tab-content">
+                <h3>Добавить ученика</h3>
+                <div class="add-student">
+                    <input type="text" id="newStudentName" placeholder="Имя ученика">
+                    <input type="text" id="newStudentLogin" placeholder="Логин">
+                    <input type="password" id="newStudentPassword" placeholder="Пароль">
+                    <select id="newStudentLanguage">
+                        <option value="en">Английский</option>
+                        <option value="es">Испанский</option>
+                        <option value="both">Оба языка</option>
+                    </select>
+                    <button id="addStudentBtn" class="btn-primary">Добавить ученика</button>
+                </div>
+                <div id="studentsManageList" class="students-manage-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Данные ученика -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalStudentName"></h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="modalDiary">Дневник</button>
+                <button class="tab-btn" data-tab="modalVocabulary">Словарик</button>
+            </div>
+            <div id="modalDiaryTab" class="tab-content active">
+                <div id="modalDiaryContent"></div>
+            </div>
+            <div id="modalVocabularyTab" class="tab-content">
+                <div id="modalVocabularyContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script type="module" src="app.js"></script>
+    <script>
+        // Регистрация Service Worker для PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker зарегистрирован'))
+                    .catch(err => console.log('Ошибка Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>
