@@ -57,6 +57,9 @@ function initApp() {
         btn.addEventListener('click', () => filterWords(btn.dataset.lang));
     });
     
+    // Массовое добавление слов
+    document.getElementById('bulkAddBtn').addEventListener('click', showBulkAddDialog);
+    
     // Автоперевод для ученика
     document.getElementById('wordOriginal').addEventListener('input', debounceTranslate);
     
@@ -86,6 +89,7 @@ function initApp() {
     // Кнопки модального окна (для учителя)
     document.getElementById('addModalDiaryBtn').addEventListener('click', addModalDiaryEntry);
     document.getElementById('addModalWordBtn').addEventListener('click', addModalWord);
+    document.getElementById('bulkAddModalBtn').addEventListener('click', showBulkAddModalDialog);
 }
 
 // Вход/Выход
@@ -453,6 +457,126 @@ async function translateWord(word, fromLang) {
     }
 }
 
+// Массовое добавление слов
+function showBulkAddDialog() {
+    const language = document.getElementById('wordLanguage').value;
+    const languageName = language === 'en' ? 'английского' : 'испанского';
+    
+    const text = prompt(
+        `Добавить список слов (${languageName} → русский)\n\n` +
+        `Формат 1 (автоперевод):\n` +
+        `hello\n` +
+        `world\n` +
+        `apple\n\n` +
+        `Формат 2 (с переводом):\n` +
+        `hello - привет\n` +
+        `world - мир\n` +
+        `apple - яблоко\n\n` +
+        `Вставьте список слов:`
+    );
+    
+    if (text) {
+        processBulkWords(text, language, currentUser.id, false);
+    }
+}
+
+function showBulkAddModalDialog() {
+    if (!currentModalStudentId) return;
+    
+    const language = document.getElementById('modalWordLanguage').value;
+    const languageName = language === 'en' ? 'английского' : 'испанского';
+    
+    const text = prompt(
+        `Добавить список слов (${languageName} → русский)\n\n` +
+        `Формат 1 (автоперевод):\n` +
+        `hello\n` +
+        `world\n` +
+        `apple\n\n` +
+        `Формат 2 (с переводом):\n` +
+        `hello - привет\n` +
+        `world - мир\n` +
+        `apple - яблоко\n\n` +
+        `Вставьте список слов:`
+    );
+    
+    if (text) {
+        processBulkWords(text, language, currentModalStudentId, true);
+    }
+}
+
+async function processBulkWords(text, language, userId, isModal) {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    if (lines.length === 0) {
+        alert('Список пуст');
+        return;
+    }
+    
+    if (lines.length > 100) {
+        alert('Максимум 100 слов за раз');
+        return;
+    }
+    
+    let addedCount = 0;
+    let errors = [];
+    
+    // Показать прогресс
+    const progressMsg = `Добавляю ${lines.length} слов...`;
+    console.log(progressMsg);
+    
+    for (const line of lines) {
+        try {
+            let original, translation;
+            
+            // Проверяем формат с переводом
+            if (line.includes(' - ')) {
+                const parts = line.split(' - ');
+                original = parts[0].trim();
+                translation = parts.slice(1).join(' - ').trim();
+            } else {
+                // Автоперевод
+                original = line.trim();
+                translation = await translateWord(original, language);
+                
+                if (!translation) {
+                    errors.push(`Не удалось перевести: ${original}`);
+                    continue;
+                }
+            }
+            
+            if (original && translation) {
+                await db.addWord(userId, {
+                    language,
+                    original,
+                    translation
+                });
+                addedCount++;
+            }
+        } catch (error) {
+            errors.push(`Ошибка при добавлении: ${line}`);
+            console.error(error);
+        }
+    }
+    
+    // Обновить список
+    if (isModal) {
+        await showStudentDetails(userId);
+    } else {
+        await loadVocabulary();
+    }
+    
+    // Показать результат
+    let message = `Добавлено слов: ${addedCount} из ${lines.length}`;
+    if (errors.length > 0) {
+        message += `\n\nОшибки:\n${errors.slice(0, 5).join('\n')}`;
+        if (errors.length > 5) {
+            message += `\n... и еще ${errors.length - 5}`;
+        }
+    }
+    
+    alert(message);
+}
+
 // Карточки
 async function startFlashcards() {
     const language = document.getElementById('cardsLanguage').value;
@@ -616,6 +740,13 @@ function showTestResults() {
 
 // Панель учителя
 async function loadTeacherData() {
+    // Проверка что у учителя есть ID
+    if (!currentUser || !currentUser.id) {
+        alert('Ошибка: Ваш аккаунт создан в старой версии.\n\nПожалуйста:\n1. Выйдите\n2. Зарегистрируйтесь как новый учитель\n3. Или напишите разработчику для миграции аккаунта');
+        handleLogout();
+        return;
+    }
+    
     await loadStudentsList();
     await loadStudentsManage();
 }
@@ -698,7 +829,7 @@ window.deleteStudent = async function(studentId) {
 window.showStudentDetails = async function(studentId) {
     currentModalStudentId = studentId; // Сохраняем ID для добавления записей
     
-    const students = await db.getStudents();
+    const students = await db.getStudents(currentUser.id);
     const student = students.find(s => s.id === studentId);
     
     if (!student) return;
