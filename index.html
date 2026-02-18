@@ -31,6 +31,26 @@
                     <button type="submit" class="btn-primary">Войти</button>
                 </form>
                 <div id="loginError" class="error-message"></div>
+                <button id="showRegisterBtn" class="btn-text" style="margin-top: 16px; width: 100%;">Зарегистрироваться как учитель</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран регистрации -->
+    <div id="registerScreen" class="screen">
+        <div class="container">
+            <div class="login-box">
+                <h1 class="app-logo">Studiûm</h1>
+                <p class="subtitle">Регистрация учителя</p>
+                <form id="registerForm">
+                    <input type="text" id="registerName" placeholder="Ваше имя" required>
+                    <input type="text" id="registerUsername" placeholder="Логин" required>
+                    <input type="password" id="registerPassword" placeholder="Пароль" required>
+                    <input type="password" id="registerPasswordConfirm" placeholder="Повторите пароль" required>
+                    <button type="submit" class="btn-primary">Зарегистрироваться</button>
+                </form>
+                <div id="registerError" class="error-message"></div>
+                <button id="showLoginBtn" class="btn-text" style="margin-top: 16px; width: 100%;">Уже есть аккаунт? Войти</button>
             </div>
         </div>
     </div>

@@ -33,6 +33,11 @@ function initApp() {
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     document.getElementById('teacherLogoutBtn').addEventListener('click', handleLogout);
 
+    // Обработчики регистрации
+    document.getElementById('showRegisterBtn').addEventListener('click', showRegisterScreen);
+    document.getElementById('showLoginBtn').addEventListener('click', showLoginScreen);
+    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+
     // Вкладки ученика
     document.querySelectorAll('#studentScreen .tab-btn').forEach(btn => {
         btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -51,6 +56,12 @@ function initApp() {
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => filterWords(btn.dataset.lang));
     });
+    
+    // Автоперевод для ученика
+    document.getElementById('wordOriginal').addEventListener('input', debounceTranslate);
+    
+    // Автоперевод для учителя в модальном окне
+    document.getElementById('modalWordOriginal').addEventListener('input', debounceTranslateModal);
 
     // Карточки
     document.getElementById('startCardsBtn').addEventListener('click', startFlashcards);
@@ -107,6 +118,52 @@ function handleLogout() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('loginScreen').classList.add('active');
     document.getElementById('loginForm').reset();
+}
+
+function showRegisterScreen() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('registerScreen').classList.add('active');
+}
+
+function showLoginScreen() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('loginScreen').classList.add('active');
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('registerName').value.trim();
+    const login = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+    const errorEl = document.getElementById('registerError');
+
+    // Валидация
+    if (!name || !login || !password) {
+        errorEl.textContent = 'Заполните все поля';
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        errorEl.textContent = 'Пароли не совпадают';
+        return;
+    }
+
+    if (password.length < 6) {
+        errorEl.textContent = 'Пароль должен быть минимум 6 символов';
+        return;
+    }
+
+    const result = await db.registerTeacher({ name, login, password });
+    
+    if (result.success) {
+        alert('Регистрация успешна! Теперь войдите с вашим логином и паролем.');
+        showLoginScreen();
+        document.getElementById('registerForm').reset();
+        errorEl.textContent = '';
+    } else {
+        errorEl.textContent = result.error;
+    }
 }
 
 function showStudentScreen() {
@@ -341,6 +398,61 @@ function filterWords(lang) {
     loadVocabulary();
 }
 
+// Автоперевод
+let translateTimeout = null;
+
+function debounceTranslate(e) {
+    clearTimeout(translateTimeout);
+    const word = e.target.value.trim();
+    
+    if (!word || word.length < 2) return;
+    
+    translateTimeout = setTimeout(async () => {
+        const language = document.getElementById('wordLanguage').value;
+        const translation = await translateWord(word, language);
+        if (translation) {
+            document.getElementById('wordTranslation').value = translation;
+        }
+    }, 500); // Задержка 0.5 сек после окончания ввода
+}
+
+function debounceTranslateModal(e) {
+    clearTimeout(translateTimeout);
+    const word = e.target.value.trim();
+    
+    if (!word || word.length < 2) return;
+    
+    translateTimeout = setTimeout(async () => {
+        const language = document.getElementById('modalWordLanguage').value;
+        const translation = await translateWord(word, language);
+        if (translation) {
+            document.getElementById('modalWordTranslation').value = translation;
+        }
+    }, 500);
+}
+
+async function translateWord(word, fromLang) {
+    try {
+        // MyMemory Translation API (бесплатный, без ключа)
+        const sourceLang = fromLang; // 'en' или 'es'
+        const targetLang = 'ru';
+        
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=${sourceLang}|${targetLang}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.responseStatus === 200 && data.responseData.translatedText) {
+            return data.responseData.translatedText;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Ошибка перевода:', error);
+        return null;
+    }
+}
+
 // Карточки
 async function startFlashcards() {
     const language = document.getElementById('cardsLanguage').value;
@@ -509,7 +621,7 @@ async function loadTeacherData() {
 }
 
 async function loadStudentsList() {
-    const students = await db.getStudents();
+    const students = await db.getStudents(currentUser.id);
     const container = document.getElementById('studentsList');
     
     if (students.length === 0) {
@@ -540,7 +652,7 @@ async function loadStudentsList() {
 }
 
 async function loadStudentsManage() {
-    const students = await db.getStudents();
+    const students = await db.getStudents(currentUser.id);
     const container = document.getElementById('studentsManageList');
     
     container.innerHTML = students.map(student => `
@@ -565,7 +677,7 @@ async function addStudent() {
         return;
     }
     
-    await db.addStudent({ name, login, password, language });
+    await db.addStudent({ name, login, password, language }, currentUser.id);
     
     document.getElementById('newStudentName').value = '';
     document.getElementById('newStudentLogin').value = '';

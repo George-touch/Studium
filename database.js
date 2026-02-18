@@ -91,7 +91,31 @@ class Database {
         return { success: false, error: 'Неверный логин или пароль' };
     }
 
-    async firebaseAddStudent(studentData) {
+    async firebaseRegisterTeacher(teacherData) {
+        // Проверка существования логина
+        const snapshot = await database.ref('users').orderByChild('login').equalTo(teacherData.login).once('value');
+        if (snapshot.val()) {
+            return { success: false, error: 'Логин уже занят' };
+        }
+
+        const hashedPassword = await this.hashPassword(teacherData.password);
+        const newTeacherRef = database.ref('users').push();
+        const id = newTeacherRef.key;
+        
+        const userData = {
+            id,
+            name: teacherData.name,
+            login: teacherData.login,
+            password: hashedPassword,
+            role: 'teacher',
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        await newTeacherRef.set(userData);
+        return { success: true, teacherId: id };
+    }
+
+    async firebaseAddStudent(studentData, teacherId) {
         const hashedPassword = await this.hashPassword(studentData.password);
         const newStudentRef = database.ref('users').push();
         const id = newStudentRef.key;
@@ -103,6 +127,7 @@ class Database {
             password: hashedPassword,
             language: studentData.language,
             role: 'student',
+            teacherId: teacherId, // Привязка к учителю
             createdAt: firebase.database.ServerValue.TIMESTAMP
         };
         
@@ -112,14 +137,15 @@ class Database {
             name: studentData.name,
             login: studentData.login,
             language: studentData.language,
+            teacherId: teacherId, // Привязка к учителю
             createdAt: firebase.database.ServerValue.TIMESTAMP
         });
         
         return { success: true, studentId: id };
     }
 
-    async firebaseGetStudents() {
-        const snapshot = await database.ref('students').once('value');
+    async firebaseGetStudents(teacherId) {
+        const snapshot = await database.ref('students').orderByChild('teacherId').equalTo(teacherId).once('value');
         const students = snapshot.val();
         return students ? Object.values(students) : [];
     }
@@ -217,18 +243,41 @@ class Database {
         return { success: false, error: 'Неверный логин или пароль' };
     }
 
-    async localAddStudent(studentData) {
+    async localRegisterTeacher(teacherData) {
+        // Проверка существования логина
+        const existingUser = Object.values(this.users).find(u => u.login === teacherData.login);
+        if (existingUser) {
+            return { success: false, error: 'Логин уже занят' };
+        }
+
+        const id = 'teacher_' + Date.now();
+        this.users[id] = {
+            id,
+            name: teacherData.name,
+            login: teacherData.login,
+            password: teacherData.password,
+            role: 'teacher',
+            createdAt: new Date().toISOString()
+        };
+        
+        this.saveData('users', this.users);
+        return { success: true, teacherId: id };
+    }
+
+    async localAddStudent(studentData, teacherId) {
         const id = 'student_' + Date.now();
         this.users[id] = {
             id,
             ...studentData,
-            role: 'student'
+            role: 'student',
+            teacherId: teacherId
         };
         this.students[id] = {
             id,
             name: studentData.name,
             login: studentData.login,
             language: studentData.language,
+            teacherId: teacherId,
             createdAt: new Date().toISOString()
         };
         this.diaries[id] = [];
@@ -242,8 +291,8 @@ class Database {
         return { success: true, studentId: id };
     }
 
-    async localGetStudents() {
-        return Object.values(this.students);
+    async localGetStudents(teacherId) {
+        return Object.values(this.students).filter(s => s.teacherId === teacherId);
     }
 
     async localDeleteStudent(studentId) {
@@ -362,16 +411,22 @@ class Database {
             : await this.localLogin(login, password);
     }
 
-    async addStudent(studentData) {
+    async registerTeacher(teacherData) {
         return this.useFirebase
-            ? await this.firebaseAddStudent(studentData)
-            : await this.localAddStudent(studentData);
+            ? await this.firebaseRegisterTeacher(teacherData)
+            : await this.localRegisterTeacher(teacherData);
     }
 
-    async getStudents() {
+    async addStudent(studentData, teacherId) {
         return this.useFirebase
-            ? await this.firebaseGetStudents()
-            : await this.localGetStudents();
+            ? await this.firebaseAddStudent(studentData, teacherId)
+            : await this.localAddStudent(studentData, teacherId);
+    }
+
+    async getStudents(teacherId) {
+        return this.useFirebase
+            ? await this.firebaseGetStudents(teacherId)
+            : await this.localGetStudents(teacherId);
     }
 
     async deleteStudent(studentId) {
