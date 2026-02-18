@@ -75,7 +75,7 @@
             <div id="diaryTab" class="tab-content active">
                 <h3>Мой дневник</h3>
                 <div class="add-entry">
-                    <textarea id="diaryText" placeholder="Что изучал сегодня? Какие трудности возникли?" rows="4"></textarea>
+                    <textarea id="diaryText" placeholder="Домашнее задание и вопросы" rows="4"></textarea>
                     <button id="addDiaryBtn" class="btn-primary">Добавить запись</button>
                 </div>
                 <div id="diaryEntries" class="entries-list"></div>
@@ -93,6 +93,7 @@
                     <input type="text" id="wordTranslation" placeholder="Перевод на русский">
                     <button id="addWordBtn" class="btn-primary">Добавить слово</button>
                 </div>
+                <button id="bulkAddBtn" class="btn-secondary" style="margin-bottom: 16px;">📋 Добавить список слов</button>
                 <div class="filter-buttons">
                     <button class="filter-btn active" data-lang="all">Все</button>
                     <button class="filter-btn" data-lang="en">Английский</button>
@@ -211,6 +212,7 @@
                     <input type="text" id="modalWordTranslation" placeholder="Перевод">
                     <button id="addModalWordBtn" class="btn-secondary">Добавить</button>
                 </div>
+                <button id="bulkAddModalBtn" class="btn-secondary" style="margin-bottom: 16px;">📋 Добавить список слов</button>
                 <div id="modalVocabularyContent"></div>
             </div>
         </div>
