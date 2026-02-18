@@ -496,8 +496,6 @@ function closeBulkModal() {
 }
 
 function submitBulkWords() {
-    if (!bulkAddContext) return;
-    
     const text = document.getElementById('bulkWordsInput').value.trim();
     
     if (!text) {
@@ -505,8 +503,27 @@ function submitBulkWords() {
         return;
     }
     
+    // Определяем контекст: для модального окна учителя или для ученика
+    let language, userId, isModal;
+    
+    if (bulkAddContext) {
+        language = bulkAddContext.language;
+        userId = bulkAddContext.userId;
+        isModal = bulkAddContext.isModal;
+    } else if (currentModalStudentId) {
+        // Модальное окно учителя
+        language = document.getElementById('modalWordLanguage').value;
+        userId = currentModalStudentId;
+        isModal = true;
+    } else {
+        // Форма ученика
+        language = document.getElementById('wordLanguage').value;
+        userId = currentUser.id;
+        isModal = false;
+    }
+    
     closeBulkModal();
-    processBulkWords(text, bulkAddContext.language, bulkAddContext.userId, bulkAddContext.isModal);
+    processBulkWords(text, language, userId, isModal);
 }
 
 async function processBulkWords(text, language, userId, isModal) {
