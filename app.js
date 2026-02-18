@@ -175,7 +175,11 @@ async function loadDiary() {
     container.innerHTML = entries.map(entry => `
         <div class="entry-item">
             <div class="entry-date">${formatDate(entry.date)}</div>
-            <div class="entry-text">${escapeHtml(entry.text)}</div>
+            <div class="entry-text" id="entry-text-${entry.id}">${escapeHtml(entry.text)}</div>
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <button class="btn-secondary" onclick="editDiaryEntry('${entry.id}', '${escapeHtml(entry.text).replace(/'/g, "\\'")}')">✏️ Редактировать</button>
+                <button class="btn-danger" onclick="deleteDiaryEntry('${entry.id}')">Удалить</button>
+            </div>
         </div>
     `).join('');
 }
@@ -218,7 +222,10 @@ function displayWords(words) {
                 <div class="word-translation">${escapeHtml(word.translation)}</div>
                 <span class="word-lang">${word.language === 'en' ? 'EN' : 'ES'}</span>
             </div>
-            <button class="btn-danger" onclick="deleteWord('${word.id}')">Удалить</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" onclick="editWord('${word.id}', '${word.language}', '${escapeHtml(word.original).replace(/'/g, "\\'")}', '${escapeHtml(word.translation).replace(/'/g, "\\'")}')">✏️</button>
+                <button class="btn-danger" onclick="deleteWord('${word.id}')">🗑️</button>
+            </div>
         </div>
     `).join('');
 }
@@ -249,6 +256,46 @@ window.deleteWord = async function(wordId) {
         await db.deleteWord(currentUser.id, wordId);
         await loadVocabulary();
     }
+}
+
+window.editWord = async function(wordId, language, original, translation) {
+    const newOriginal = prompt('Слово на иностранном языке:', original);
+    if (newOriginal === null) return;
+    
+    const newTranslation = prompt('Перевод:', translation);
+    if (newTranslation === null) return;
+    
+    if (!newOriginal.trim() || !newTranslation.trim()) {
+        alert('Поля не могут быть пустыми');
+        return;
+    }
+    
+    await db.updateWord(currentUser.id, wordId, {
+        language,
+        original: newOriginal.trim(),
+        translation: newTranslation.trim()
+    });
+    await loadVocabulary();
+}
+
+window.deleteDiaryEntry = async function(entryId) {
+    if (confirm('Удалить эту запись?')) {
+        await db.deleteDiaryEntry(currentUser.id, entryId);
+        await loadDiary();
+    }
+}
+
+window.editDiaryEntry = async function(entryId, text) {
+    const newText = prompt('Редактировать запись:', text);
+    if (newText === null) return;
+    
+    if (!newText.trim()) {
+        alert('Запись не может быть пустой');
+        return;
+    }
+    
+    await db.updateDiaryEntry(currentUser.id, entryId, newText.trim());
+    await loadDiary();
 }
 
 function filterWords(lang) {

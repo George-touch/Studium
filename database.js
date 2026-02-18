@@ -173,6 +173,21 @@ class Database {
         return { success: true };
     }
 
+    async firebaseUpdateWord(userId, wordId, wordData) {
+        await database.ref(`vocabularies/${userId}/${wordId}`).update(wordData);
+        return { success: true };
+    }
+
+    async firebaseUpdateDiaryEntry(userId, entryId, text) {
+        await database.ref(`diaries/${userId}/${entryId}`).update({ text });
+        return { success: true };
+    }
+
+    async firebaseDeleteDiaryEntry(userId, entryId) {
+        await database.ref(`diaries/${userId}/${entryId}`).remove();
+        return { success: true };
+    }
+
     async firebaseGetStudentStats(studentId) {
         const [diarySnapshot, wordsSnapshot] = await Promise.all([
             database.ref(`diaries/${studentId}`).once('value'),
@@ -297,6 +312,38 @@ class Database {
         return { success: true };
     }
 
+    async localUpdateWord(userId, wordId, wordData) {
+        if (this.vocabularies[userId]) {
+            const word = this.vocabularies[userId].find(w => w.id === wordId);
+            if (word) {
+                Object.assign(word, wordData);
+                this.saveData('vocabularies', this.vocabularies);
+            }
+        }
+        return { success: true };
+    }
+
+    async localUpdateDiaryEntry(userId, entryId, text) {
+        if (this.diaries[userId]) {
+            const entry = this.diaries[userId].find(e => e.id === entryId);
+            if (entry) {
+                entry.text = text;
+                this.saveData('diaries', this.diaries);
+            }
+        }
+        return { success: true };
+    }
+
+    async localDeleteDiaryEntry(userId, entryId) {
+        if (this.diaries[userId]) {
+            this.diaries[userId] = this.diaries[userId].filter(
+                e => e.id !== entryId
+            );
+            this.saveData('diaries', this.diaries);
+        }
+        return { success: true };
+    }
+
     async localGetStudentStats(studentId) {
         const diaryCount = (this.diaries[studentId] || []).length;
         const wordsCount = (this.vocabularies[studentId] || []).length;
@@ -361,6 +408,24 @@ class Database {
         return this.useFirebase
             ? await this.firebaseDeleteWord(userId, wordId)
             : await this.localDeleteWord(userId, wordId);
+    }
+
+    async updateWord(userId, wordId, wordData) {
+        return this.useFirebase
+            ? await this.firebaseUpdateWord(userId, wordId, wordData)
+            : await this.localUpdateWord(userId, wordId, wordData);
+    }
+
+    async updateDiaryEntry(userId, entryId, text) {
+        return this.useFirebase
+            ? await this.firebaseUpdateDiaryEntry(userId, entryId, text)
+            : await this.localUpdateDiaryEntry(userId, entryId, text);
+    }
+
+    async deleteDiaryEntry(userId, entryId) {
+        return this.useFirebase
+            ? await this.firebaseDeleteDiaryEntry(userId, entryId)
+            : await this.localDeleteDiaryEntry(userId, entryId);
     }
 
     async getStudentStats(studentId) {
