@@ -92,7 +92,11 @@ function initApp() {
     window.addEventListener('click', (e) => {
         if (e.target.id === 'studentModal') closeModal();
         if (e.target.id === 'bulkAddModal') closeBulkModal();
+        if (e.target.id === 'dictionaryModal') closeDictionaryModal();
     });
+    
+    // Модальное окно словаря
+    document.getElementById('closeDictionaryModal').addEventListener('click', closeDictionaryModal);
     
     // Модальное окно массового добавления
     document.getElementById('closeBulkModal').addEventListener('click', closeBulkModal);
@@ -369,6 +373,8 @@ function displayWords(words) {
                     ${category !== 'none' ? `<button class="category-btn" onclick="setCategory('${word.id}', null)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--separator); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer;">✕</button>` : ''}
                 </div>
                 <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" onclick="openDictionary('${escapeHtml(word.original)}', '${word.language}')" title="Словарь" style="padding: 8px 12px;">📖</button>
+                    <button class="btn-secondary" onclick="speakWord('${escapeHtml(word.original)}', '${word.language}')" title="Озвучить" style="padding: 8px 12px;">🔊</button>
                     <button class="btn-secondary" onclick="editWord('${word.id}', '${word.language}', '${escapeHtml(word.original).replace(/'/g, "\\'")}', '${escapeHtml(word.translation).replace(/'/g, "\\'")}')">✏️</button>
                     <button class="btn-danger" onclick="deleteWord('${word.id}')">🗑️</button>
                 </div>
@@ -503,6 +509,182 @@ function sortWords(sortType) {
         btn.classList.toggle('active', btn.dataset.sort === sortType);
     });
     loadVocabulary();
+}
+
+// Озвучивание слов
+window.speakWord = function(text, language) {
+    // Проверка поддержки Web Speech API
+    if (!('speechSynthesis' in window)) {
+        alert('Ваш браузер не поддерживает озвучивание');
+        return;
+    }
+    
+    // Остановить предыдущее озвучивание если есть
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Установить язык
+    if (language === 'en') {
+        utterance.lang = 'en-US';
+    } else if (language === 'es') {
+        utterance.lang = 'es-ES';
+    } else {
+        utterance.lang = 'en-US'; // По умолчанию
+    }
+    
+    // Настройки голоса
+    utterance.rate = 0.9; // Скорость (0.1 - 10)
+    utterance.pitch = 1; // Тон (0 - 2)
+    utterance.volume = 1; // Громкость (0 - 1)
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+// Интеграция словарей
+window.openDictionary = async function(word, language) {
+    const modal = document.getElementById('dictionaryModal');
+    const wordEl = document.getElementById('dictionaryWord');
+    const langEl = document.getElementById('dictionaryLanguage');
+    const contentEl = document.getElementById('dictionaryContent');
+    
+    wordEl.textContent = word;
+    langEl.textContent = language === 'en' ? 'Английский' : 'Испанский';
+    contentEl.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">Загрузка...</div>';
+    
+    modal.classList.add('active');
+    
+    // Загрузить данные из словарей
+    await fetchDictionaryData(word, language);
+}
+
+function closeDictionaryModal() {
+    document.getElementById('dictionaryModal').classList.remove('active');
+}
+
+async function fetchDictionaryData(word, language) {
+    const contentEl = document.getElementById('dictionaryContent');
+    let html = '';
+    
+    try {
+        if (language === 'en') {
+            // Английское слово - используем Free Dictionary API и Yandex
+            html += '<div style="display: flex; flex-direction: column; gap: 24px;">';
+            
+            // Free Dictionary API
+            html += await fetchFreeDictionary(word);
+            
+            // Yandex Dictionary для переводов
+            html += await fetchYandexDictionary(word, 'en');
+            
+            html += '</div>';
+        } else if (language === 'es') {
+            // Испанское слово - только Yandex
+            html += '<div style="display: flex; flex-direction: column; gap: 24px;">';
+            html += await fetchYandexDictionary(word, 'es');
+            html += '</div>';
+        }
+        
+        contentEl.innerHTML = html || '<p style="text-align: center; padding: 40px; color: var(--text-secondary);">Определения не найдены</p>';
+    } catch (error) {
+        console.error('Dictionary error:', error);
+        contentEl.innerHTML = '<p style="text-align: center; padding: 40px; color: var(--text-danger);">Ошибка загрузки словарей</p>';
+    }
+}
+
+async function fetchFreeDictionary(word) {
+    try {
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+        
+        if (!response.ok) {
+            return '<div style="padding: 16px; background: var(--card-bg); border-radius: 12px;"><h3 style="margin-bottom: 8px;">📖 Free Dictionary</h3><p style="color: var(--text-secondary);">Определение не найдено</p></div>';
+        }
+        
+        const data = await response.json();
+        const entry = data[0];
+        
+        let html = '<div style="padding: 16px; background: var(--card-bg); border-radius: 12px;">';
+        html += '<h3 style="margin-bottom: 12px;">📖 Free Dictionary</h3>';
+        
+        // Произношение
+        if (entry.phonetic) {
+            html += `<p style="color: var(--text-secondary); margin-bottom: 12px;">${escapeHtml(entry.phonetic)}</p>`;
+        }
+        
+        // Определения по частям речи
+        entry.meanings.slice(0, 3).forEach(meaning => {
+            html += `<div style="margin-bottom: 16px;">`;
+            html += `<p style="color: var(--primary); font-weight: 600; margin-bottom: 8px;">${escapeHtml(meaning.partOfSpeech)}</p>`;
+            
+            meaning.definitions.slice(0, 2).forEach((def, i) => {
+                html += `<p style="margin-bottom: 4px;"><strong>${i + 1}.</strong> ${escapeHtml(def.definition)}</p>`;
+                if (def.example) {
+                    html += `<p style="color: var(--text-tertiary); font-style: italic; margin-left: 20px; margin-bottom: 8px;">"${escapeHtml(def.example)}"</p>`;
+                }
+            });
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        return html;
+    } catch (error) {
+        console.error('Free Dictionary error:', error);
+        return '';
+    }
+}
+
+async function fetchYandexDictionary(word, lang) {
+    try {
+        // Yandex Dictionary API требует ключ, но мы используем их публичный endpoint
+        // Для production нужно получить ключ на https://yandex.com/dev/dictionary/
+        const langPair = lang === 'en' ? 'en-ru' : 'es-ru';
+        
+        // Yandex Dictionary API ключ
+        const apiKey = 'dict.1.1.20260220T223128Z.932f78f497410eb9.b0f6e69d5adbf52dc8ddb13092506e705cb3b4e3';
+        
+        const response = await fetch(`https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=${apiKey}&lang=${langPair}&text=${encodeURIComponent(word)}`);
+        
+        if (!response.ok) {
+            return '<div style="padding: 16px; background: var(--card-bg); border-radius: 12px;"><h3 style="margin-bottom: 8px;">🇷🇺 Yandex Словарь</h3><p style="color: var(--text-secondary);">Перевод не найден</p></div>';
+        }
+        
+        const data = await response.json();
+        
+        if (!data.def || data.def.length === 0) {
+            return '<div style="padding: 16px; background: var(--card-bg); border-radius: 12px;"><h3 style="margin-bottom: 8px;">🇷🇺 Yandex Словарь</h3><p style="color: var(--text-secondary);">Перевод не найден</p></div>';
+        }
+        
+        let html = '<div style="padding: 16px; background: var(--card-bg); border-radius: 12px;">';
+        html += '<h3 style="margin-bottom: 12px;">🇷🇺 Yandex Словарь</h3>';
+        
+        data.def.slice(0, 2).forEach(entry => {
+            if (entry.pos) {
+                html += `<p style="color: var(--primary); font-weight: 600; margin-bottom: 8px;">${escapeHtml(entry.pos)}</p>`;
+            }
+            
+            if (entry.tr) {
+                entry.tr.slice(0, 3).forEach((tr, i) => {
+                    html += `<p style="margin-bottom: 4px;"><strong>${i + 1}.</strong> ${escapeHtml(tr.text)}`;
+                    if (tr.syn) {
+                        const synonyms = tr.syn.slice(0, 2).map(s => s.text).join(', ');
+                        html += ` <span style="color: var(--text-secondary);">(${escapeHtml(synonyms)})</span>`;
+                    }
+                    html += '</p>';
+                    
+                    if (tr.ex && tr.ex[0]) {
+                        html += `<p style="color: var(--text-tertiary); font-style: italic; margin-left: 20px; margin-bottom: 8px;">"${escapeHtml(tr.ex[0].text)}" - ${escapeHtml(tr.ex[0].tr[0].text)}</p>`;
+                    }
+                });
+            }
+        });
+        
+        html += '</div>';
+        return html;
+    } catch (error) {
+        console.error('Yandex Dictionary error:', error);
+        return '';
+    }
 }
 
 // Автоперевод
@@ -750,6 +932,7 @@ function showFlashcard() {
             <div class="flashcard-hint">Нажмите, чтобы увидеть перевод</div>
         </div>
         <div class="flashcard-controls">
+            <button class="btn-secondary" onclick="speakWord('${escapeHtml(card.original)}', '${card.language}')" style="padding: 12px 20px; font-size: 18px;">🔊 Озвучить</button>
             <button class="btn-secondary" onclick="nextFlashcard()">Следующая →</button>
         </div>
     `;
@@ -781,15 +964,55 @@ window.nextFlashcard = function() {
 // Тест
 async function startTest() {
     const language = document.getElementById('testLanguage').value;
+    const category = document.getElementById('testCategory').value;
+    const dateFilter = document.getElementById('testDateFilter').value;
+    const successFilter = document.getElementById('testSuccessFilter').value;
     const count = parseInt(document.getElementById('testQuestions').value);
     const words = await db.getWords(currentUser.id);
     
-    let availableWords = language === 'all' 
-        ? words 
-        : words.filter(w => w.language === language);
+    let availableWords = words;
+    
+    // Фильтр по языку
+    if (language !== 'all') {
+        availableWords = availableWords.filter(w => w.language === language);
+    }
+    
+    // Фильтр по категории
+    if (category !== 'all') {
+        if (category === 'none') {
+            availableWords = availableWords.filter(w => !w.category || w.category === null);
+        } else {
+            availableWords = availableWords.filter(w => w.category === category);
+        }
+    }
+    
+    // Фильтр по дате добавления
+    if (dateFilter !== 'all') {
+        const daysAgo = parseInt(dateFilter);
+        const cutoffDate = Date.now() - (daysAgo * 24 * 60 * 60 * 1000);
+        availableWords = availableWords.filter(w => {
+            const wordDate = w.addedAt || 0;
+            return wordDate >= cutoffDate;
+        });
+    }
+    
+    // Фильтр по проценту запоминания
+    if (successFilter !== 'all') {
+        const maxPercent = parseInt(successFilter);
+        availableWords = availableWords.filter(w => {
+            const correct = w.correctCount || 0;
+            const incorrect = w.incorrectCount || 0;
+            const total = correct + incorrect;
+            
+            if (total === 0) return true; // Новые слова включаем
+            
+            const successRate = Math.round((correct / total) * 100);
+            return successRate < maxPercent;
+        });
+    }
     
     if (availableWords.length < 4) {
-        alert('Для теста нужно минимум 4 слова');
+        alert('Недостаточно слов для теста (нужно минимум 4). Попробуйте изменить фильтры.');
         return;
     }
     

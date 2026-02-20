@@ -146,6 +146,36 @@
                         </select>
                     </label>
                     <label>
+                        Категория:
+                        <select id="testCategory">
+                            <option value="all">Все</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="none">Без категории</option>
+                        </select>
+                    </label>
+                    <label>
+                        Добавлено за:
+                        <select id="testDateFilter">
+                            <option value="all">Всё время</option>
+                            <option value="3">3 дня</option>
+                            <option value="7">7 дней</option>
+                            <option value="14">14 дней</option>
+                            <option value="30">30 дней</option>
+                        </select>
+                    </label>
+                    <label>
+                        Процент запоминания:
+                        <select id="testSuccessFilter">
+                            <option value="all">Все</option>
+                            <option value="10">< 10%</option>
+                            <option value="30">< 30%</option>
+                            <option value="50">< 50%</option>
+                            <option value="70">< 70%</option>
+                        </select>
+                    </label>
+                    <label>
                         Количество вопросов:
                         <select id="testQuestions">
                             <option value="5">5</option>
@@ -248,6 +278,26 @@
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
                 <button id="cancelBulkBtn" class="btn-text">Отмена</button>
                 <button id="submitBulkBtn" class="btn-primary">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно словаря -->
+    <div id="dictionaryModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close" id="closeDictionaryModal">&times;</span>
+            <h2 id="dictionaryWord" style="margin-bottom: 8px;"></h2>
+            <p id="dictionaryLanguage" style="color: var(--text-secondary); margin-bottom: 24px;"></p>
+            
+            <div id="dictionaryContent" style="max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                    Загрузка...
+                </div>
+            </div>
+            
+            <!-- Атрибуция Yandex.Dictionary (обязательно) -->
+            <div style="text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--separator); color: var(--text-secondary);">
+                Powered by <a href="http://api.yandex.com/dictionary" target="_blank" style="color: var(--text); text-decoration: none; font-weight: 600;">Yandex.Dictionary</a>
             </div>
         </div>
     </div>
