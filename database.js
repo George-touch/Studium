@@ -182,6 +182,9 @@ class Database {
         const word = {
             id: newWordRef.key,
             ...wordData,
+            correctCount: 0,
+            incorrectCount: 0,
+            category: null, // A, B, C или null
             addedAt: firebase.database.ServerValue.TIMESTAMP
         };
         await newWordRef.set(word);
@@ -201,6 +204,30 @@ class Database {
 
     async firebaseUpdateWord(userId, wordId, wordData) {
         await database.ref(`vocabularies/${userId}/${wordId}`).update(wordData);
+        return { success: true };
+    }
+
+    async firebaseUpdateWordStats(userId, wordId, isCorrect) {
+        const wordRef = database.ref(`vocabularies/${userId}/${wordId}`);
+        const snapshot = await wordRef.once('value');
+        const word = snapshot.val();
+        
+        if (word) {
+            if (isCorrect) {
+                await wordRef.update({ 
+                    correctCount: (word.correctCount || 0) + 1 
+                });
+            } else {
+                await wordRef.update({ 
+                    incorrectCount: (word.incorrectCount || 0) + 1 
+                });
+            }
+        }
+        return { success: true };
+    }
+
+    async firebaseUpdateWordCategory(userId, wordId, category) {
+        await database.ref(`vocabularies/${userId}/${wordId}`).update({ category });
         return { success: true };
     }
 
@@ -338,6 +365,9 @@ class Database {
         const word = {
             id: 'word_' + Date.now(),
             ...wordData,
+            correctCount: 0,
+            incorrectCount: 0,
+            category: null,
             addedAt: new Date().toISOString()
         };
         
@@ -366,6 +396,32 @@ class Database {
             const word = this.vocabularies[userId].find(w => w.id === wordId);
             if (word) {
                 Object.assign(word, wordData);
+                this.saveData('vocabularies', this.vocabularies);
+            }
+        }
+        return { success: true };
+    }
+
+    async localUpdateWordStats(userId, wordId, isCorrect) {
+        if (this.vocabularies[userId]) {
+            const word = this.vocabularies[userId].find(w => w.id === wordId);
+            if (word) {
+                if (isCorrect) {
+                    word.correctCount = (word.correctCount || 0) + 1;
+                } else {
+                    word.incorrectCount = (word.incorrectCount || 0) + 1;
+                }
+                this.saveData('vocabularies', this.vocabularies);
+            }
+        }
+        return { success: true };
+    }
+
+    async localUpdateWordCategory(userId, wordId, category) {
+        if (this.vocabularies[userId]) {
+            const word = this.vocabularies[userId].find(w => w.id === wordId);
+            if (word) {
+                word.category = category;
                 this.saveData('vocabularies', this.vocabularies);
             }
         }
@@ -487,6 +543,18 @@ class Database {
         return this.useFirebase
             ? await this.firebaseGetStudentStats(studentId)
             : await this.localGetStudentStats(studentId);
+    }
+
+    async updateWordStats(userId, wordId, isCorrect) {
+        return this.useFirebase
+            ? await this.firebaseUpdateWordStats(userId, wordId, isCorrect)
+            : await this.localUpdateWordStats(userId, wordId, isCorrect);
+    }
+
+    async updateWordCategory(userId, wordId, category) {
+        return this.useFirebase
+            ? await this.firebaseUpdateWordCategory(userId, wordId, category)
+            : await this.localUpdateWordCategory(userId, wordId, category);
     }
 }
 

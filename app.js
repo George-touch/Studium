@@ -4,6 +4,7 @@ import { db } from './database.js';
 let currentUser = null;
 let currentTab = 'diary';
 let currentFilter = 'all';
+let currentSort = 'date'; // date, category, success
 let flashcardIndex = 0;
 let flashcards = [];
 let testQuestions = [];
@@ -55,6 +56,11 @@ function initApp() {
     document.getElementById('addWordBtn').addEventListener('click', addWord);
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => filterWords(btn.dataset.lang));
+    });
+    
+    // Кнопки сортировки
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => sortWords(btn.dataset.sort));
     });
     
     // Массовое добавление слов
@@ -278,28 +284,83 @@ async function loadVocabulary() {
 function displayWords(words) {
     const container = document.getElementById('wordsList');
     
-    const filtered = currentFilter === 'all' 
+    // Фильтрация
+    let filtered = currentFilter === 'all' 
         ? words 
         : words.filter(w => w.language === currentFilter);
+    
+    // Сортировка
+    if (currentSort === 'date') {
+        filtered.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0)); // Новые сверху
+    } else if (currentSort === 'category') {
+        const categoryOrder = { 'A': 0, 'B': 1, 'C': 2, null: 3, 'none': 3 };
+        filtered.sort((a, b) => {
+            const catA = categoryOrder[a.category] !== undefined ? categoryOrder[a.category] : 3;
+            const catB = categoryOrder[b.category] !== undefined ? categoryOrder[b.category] : 3;
+            return catA - catB;
+        });
+    } else if (currentSort === 'success') {
+        filtered.sort((a, b) => {
+            const rateA = (a.correctCount || 0) + (a.incorrectCount || 0) > 0 
+                ? (a.correctCount || 0) / ((a.correctCount || 0) + (a.incorrectCount || 0)) 
+                : -1;
+            const rateB = (b.correctCount || 0) + (b.incorrectCount || 0) > 0 
+                ? (b.correctCount || 0) / ((b.correctCount || 0) + (b.incorrectCount || 0)) 
+                : -1;
+            return rateA - rateB; // Низкий процент сверху (нужно повторить)
+        });
+    }
     
     if (filtered.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #6B7280;">Слов пока нет</p>';
         return;
     }
     
-    container.innerHTML = filtered.map(word => `
-        <div class="word-item">
-            <div class="word-content">
-                <div class="word-original">${escapeHtml(word.original)}</div>
-                <div class="word-translation">${escapeHtml(word.translation)}</div>
-                <span class="word-lang">${word.language === 'en' ? 'EN' : 'ES'}</span>
+    container.innerHTML = filtered.map(word => {
+        const correct = word.correctCount || 0;
+        const incorrect = word.incorrectCount || 0;
+        const total = correct + incorrect;
+        const successRate = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const category = word.category || 'none';
+        
+        // Цвет прогресс-бара по проценту
+        let progressColor = '#FF3B30'; // Красный <50%
+        if (successRate >= 70) progressColor = '#34C759'; // Зеленый >=70%
+        else if (successRate >= 50) progressColor = '#FF9500'; // Оранжевый 50-69%
+        
+        const addedDate = word.addedAt ? new Date(word.addedAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '';
+        
+        return `
+        <div class="word-item" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                <div class="word-content" style="flex: 1;">
+                    <div class="word-original">${escapeHtml(word.original)}</div>
+                    <div class="word-translation">${escapeHtml(word.translation)}</div>
+                    <span class="word-lang">${word.language === 'en' ? 'EN' : 'ES'}</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div style="text-align: right; font-size: 12px; color: var(--text-secondary); min-width: 80px;">
+                        ${total > 0 ? `<div style="font-weight: 600; color: ${progressColor};">${successRate}%</div>` : '<div style="color: var(--text-tertiary);">Новое</div>'}
+                        ${total > 0 ? `<div>${correct}/${total}</div>` : ''}
+                        ${addedDate ? `<div style="color: var(--text-tertiary); margin-top: 2px;">${addedDate}</div>` : ''}
+                    </div>
+                </div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn-secondary" onclick="editWord('${word.id}', '${word.language}', '${escapeHtml(word.original).replace(/'/g, "\\'")}', '${escapeHtml(word.translation).replace(/'/g, "\\'")}')">✏️</button>
-                <button class="btn-danger" onclick="deleteWord('${word.id}')">🗑️</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                <div class="word-category-buttons" style="display: flex; gap: 4px;">
+                    <button class="category-btn ${category === 'A' ? 'active' : ''}" onclick="setCategory('${word.id}', 'A')" style="padding: 4px 12px; border-radius: 6px; border: 1px solid var(--separator); background: ${category === 'A' ? 'var(--primary)' : 'transparent'}; color: ${category === 'A' ? 'white' : 'var(--text)'}; font-size: 14px; font-weight: 600; cursor: pointer;">A</button>
+                    <button class="category-btn ${category === 'B' ? 'active' : ''}" onclick="setCategory('${word.id}', 'B')" style="padding: 4px 12px; border-radius: 6px; border: 1px solid var(--separator); background: ${category === 'B' ? 'var(--primary)' : 'transparent'}; color: ${category === 'B' ? 'white' : 'var(--text)'}; font-size: 14px; font-weight: 600; cursor: pointer;">B</button>
+                    <button class="category-btn ${category === 'C' ? 'active' : ''}" onclick="setCategory('${word.id}', 'C')" style="padding: 4px 12px; border-radius: 6px; border: 1px solid var(--separator); background: ${category === 'C' ? 'var(--primary)' : 'transparent'}; color: ${category === 'C' ? 'white' : 'var(--text)'}; font-size: 14px; font-weight: 600; cursor: pointer;">C</button>
+                    ${category !== 'none' ? `<button class="category-btn" onclick="setCategory('${word.id}', null)" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--separator); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer;">✕</button>` : ''}
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" onclick="editWord('${word.id}', '${word.language}', '${escapeHtml(word.original).replace(/'/g, "\\'")}', '${escapeHtml(word.translation).replace(/'/g, "\\'")}')">✏️</button>
+                    <button class="btn-danger" onclick="deleteWord('${word.id}')">🗑️</button>
+                </div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 async function addWord() {
@@ -404,6 +465,19 @@ function filterWords(lang) {
     currentFilter = lang;
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    loadVocabulary();
+}
+
+window.setCategory = async function(wordId, category) {
+    await db.updateWordCategory(currentUser.id, wordId, category);
+    await loadVocabulary();
+}
+
+function sortWords(sortType) {
+    currentSort = sortType;
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === sortType);
     });
     loadVocabulary();
 }
@@ -735,7 +809,7 @@ function showTestQuestion() {
             <div class="question-text">${escapeHtml(question.original)}</div>
             <div class="answer-options">
                 ${options.map(opt => `
-                    <div class="answer-option" onclick="selectAnswer('${escapeHtml(opt)}', '${escapeHtml(question.translation)}')">
+                    <div class="answer-option" onclick="selectAnswer('${escapeHtml(opt)}', '${escapeHtml(question.translation)}', '${question.id}')">
                         ${escapeHtml(opt)}
                     </div>
                 `).join('')}
@@ -744,9 +818,12 @@ function showTestQuestion() {
     `;
 }
 
-window.selectAnswer = function(selected, correct) {
+window.selectAnswer = async function(selected, correct, wordId) {
     const isCorrect = selected === correct;
     testAnswers.push(isCorrect);
+    
+    // Обновить статистику слова
+    await db.updateWordStats(currentUser.id, wordId, isCorrect);
     
     document.querySelectorAll('.answer-option').forEach(opt => {
         opt.style.pointerEvents = 'none';
