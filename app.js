@@ -512,33 +512,53 @@ function sortWords(sortType) {
 }
 
 // Озвучивание слов
-window.speakWord = function(text, language) {
-    // Проверка поддержки Web Speech API
-    if (!('speechSynthesis' in window)) {
-        alert('Ваш браузер не поддерживает озвучивание');
-        return;
-    }
-    
-    // Остановить предыдущее озвучивание если есть
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Установить язык
+window.speakWord = async function(text, language) {
+    // Определить язык для Google TTS
+    let langCode = 'en';
     if (language === 'en') {
-        utterance.lang = 'en-US';
+        langCode = 'en';
     } else if (language === 'es') {
-        utterance.lang = 'es-ES';
-    } else {
-        utterance.lang = 'en-US'; // По умолчанию
+        langCode = 'es';
     }
     
-    // Настройки голоса
-    utterance.rate = 0.9; // Скорость (0.1 - 10)
-    utterance.pitch = 1; // Тон (0 - 2)
-    utterance.volume = 1; // Громкость (0 - 1)
-    
-    window.speechSynthesis.speak(utterance);
+    try {
+        // Попытка использовать Google Translate TTS (лучшее качество)
+        const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langCode}&client=tw-ob`;
+        
+        const audio = new Audio(googleTtsUrl);
+        await audio.play();
+        
+        console.log('Используется Google TTS');
+    } catch (error) {
+        // Fallback на Web Speech API если Google TTS не работает
+        console.log('Google TTS не доступен, используется Web Speech API');
+        
+        if (!('speechSynthesis' in window)) {
+            alert('Озвучивание не поддерживается вашим браузером');
+            return;
+        }
+        
+        // Остановить предыдущее озвучивание если есть
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Установить язык
+        if (language === 'en') {
+            utterance.lang = 'en-US';
+        } else if (language === 'es') {
+            utterance.lang = 'es-ES';
+        } else {
+            utterance.lang = 'en-US';
+        }
+        
+        // Настройки голоса
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        
+        window.speechSynthesis.speak(utterance);
+    }
 }
 
 // Интеграция словарей
