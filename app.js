@@ -4,6 +4,7 @@ import { db } from './database.js';
 let currentUser = null;
 let currentTab = 'diary';
 let currentFilter = 'all';
+let currentCategoryFilter = 'all'; // all, A, B, C, none
 let currentSort = 'date'; // date, category, success
 let flashcardIndex = 0;
 let flashcards = [];
@@ -56,6 +57,11 @@ function initApp() {
     document.getElementById('addWordBtn').addEventListener('click', addWord);
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => filterWords(btn.dataset.lang));
+    });
+    
+    // Фильтры по категориям
+    document.querySelectorAll('.category-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => filterByCategory(btn.dataset.category));
     });
     
     // Кнопки сортировки
@@ -284,10 +290,19 @@ async function loadVocabulary() {
 function displayWords(words) {
     const container = document.getElementById('wordsList');
     
-    // Фильтрация
+    // Фильтрация по языку
     let filtered = currentFilter === 'all' 
         ? words 
         : words.filter(w => w.language === currentFilter);
+    
+    // Фильтрация по категории
+    if (currentCategoryFilter !== 'all') {
+        if (currentCategoryFilter === 'none') {
+            filtered = filtered.filter(w => !w.category || w.category === null);
+        } else {
+            filtered = filtered.filter(w => w.category === currentCategoryFilter);
+        }
+    }
     
     // Сортировка
     if (currentSort === 'date') {
@@ -465,6 +480,14 @@ function filterWords(lang) {
     currentFilter = lang;
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    loadVocabulary();
+}
+
+function filterByCategory(category) {
+    currentCategoryFilter = category;
+    document.querySelectorAll('.category-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === category);
     });
     loadVocabulary();
 }
