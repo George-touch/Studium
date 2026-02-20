@@ -713,12 +713,21 @@ function showTestQuestion() {
     }
     
     const question = testQuestions[currentQuestion];
-    const allWords = testQuestions.concat(
-        shuffleArray(testQuestions).slice(0, 2)
-    );
-    const options = shuffleArray(
-        Array.from(new Set(allWords.map(w => w.translation)))
-    ).slice(0, 4);
+    
+    // Получить все доступные переводы (кроме правильного)
+    const wrongOptions = testQuestions
+        .filter(w => w.translation !== question.translation)
+        .map(w => w.translation);
+    
+    // Убрать дубликаты и перемешать
+    const uniqueWrong = Array.from(new Set(wrongOptions));
+    const shuffledWrong = shuffleArray(uniqueWrong);
+    
+    // Взять 3 неправильных ответа
+    const wrong3 = shuffledWrong.slice(0, 3);
+    
+    // Добавить правильный ответ и перемешать все 4
+    const options = shuffleArray([question.translation, ...wrong3]);
     
     container.innerHTML = `
         <div class="test-question">
