@@ -1,8 +1,8 @@
 {
-  "name": "Studiûm – Изучение языков",
-  "short_name": "Studiûm",
+  "name": "Skillovo – Изучение языков",
+  "short_name": "Skillovo",
   "description": "Современное приложение для изучения английского и испанского языков",
-  "start_url": "https://george-touch.github.io/Studium/",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#007AFF",

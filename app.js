@@ -1,4 +1,5 @@
 import { db } from './database.js';
+import { createBoard } from './board.js';
 
 // Состояние приложения
 let currentUser = null;
@@ -12,6 +13,8 @@ let testQuestions = [];
 let currentQuestion = 0;
 let testAnswers = [];
 let currentModalStudentId = null; // ID текущего ученика в модальном окне
+let studentBoard = null; // экземпляр доски ученика
+let teacherBoard = null; // экземпляр доски в модальном окне учителя
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -141,6 +144,8 @@ async function handleLogin(e) {
 function handleLogout() {
     currentUser = null;
     localStorage.removeItem('currentUser');
+    if (studentBoard) { studentBoard.destroy(); studentBoard = null; }
+    if (teacherBoard) { teacherBoard.destroy(); teacherBoard = null; }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('loginScreen').classList.add('active');
     document.getElementById('loginForm').reset();
@@ -221,10 +226,31 @@ function switchTab(tabName) {
         'diary': 'diaryTab',
         'vocabulary': 'vocabularyTab',
         'cards': 'cardsTab',
-        'test': 'testTab'
+        'test': 'testTab',
+        'board': 'boardTab'
     };
     
     document.getElementById(tabs[tabName]).classList.add('active');
+
+    if (tabName === 'board') {
+        initStudentBoard();
+    }
+}
+
+async function initStudentBoard() {
+    if (studentBoard) return;
+
+    const canvas = document.getElementById('studentBoardCanvas');
+    const wrap = document.getElementById('studentBoardWrap');
+    const toolbar = document.getElementById('studentBoardToolbar');
+
+    studentBoard = createBoard({
+        canvas, wrap, toolbar,
+        onChange: (elements) => db.saveBoard(currentUser.id, elements)
+    });
+
+    const saved = await db.getBoard(currentUser.id);
+    studentBoard.load(saved);
 }
 
 function switchTeacherTab(tabName) {
@@ -523,15 +549,29 @@ window.speakWord = async function(text, language) {
     
     try {
         // Попытка использовать Google Translate TTS (лучшее качество)
-        const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langCode}&client=tw-ob`;
+        const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langCode}&client=tw-ob&ttsspeed=1`;
         
-        const audio = new Audio(googleTtsUrl);
+        // Загрузить аудио через fetch для обхода некоторых ограничений
+        const response = await fetch(googleTtsUrl);
+        
+        if (!response.ok) {
+            throw new Error('Google TTS недоступен');
+        }
+        
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        
         await audio.play();
         
-        console.log('Используется Google TTS');
+        // Очистить URL после воспроизведения
+        audio.onended = () => URL.revokeObjectURL(audioUrl);
+        
+        console.log('✅ Используется Google TTS (качественный голос)');
     } catch (error) {
         // Fallback на Web Speech API если Google TTS не работает
-        console.log('Google TTS не доступен, используется Web Speech API');
+        console.log('⚠️ Google TTS не доступен, используется Web Speech API (базовый голос)');
+        console.log('Причина:', error.message);
         
         if (!('speechSynthesis' in window)) {
             alert('Озвучивание не поддерживается вашим браузером');
@@ -1269,6 +1309,10 @@ window.showStudentDetails = async function(studentId) {
 
 function closeModal() {
     document.getElementById('studentModal').classList.remove('active');
+    if (teacherBoard) {
+        teacherBoard.destroy();
+        teacherBoard = null;
+    }
 }
 
 function switchModalTab(tabName) {
@@ -1278,6 +1322,28 @@ function switchModalTab(tabName) {
     
     document.getElementById('modalDiaryTab').classList.toggle('active', tabName === 'modalDiary');
     document.getElementById('modalVocabularyTab').classList.toggle('active', tabName === 'modalVocabulary');
+    document.getElementById('modalBoardTab').classList.toggle('active', tabName === 'modalBoard');
+
+    if (tabName === 'modalBoard') {
+        initTeacherBoard();
+    }
+}
+
+async function initTeacherBoard() {
+    if (!currentModalStudentId) return;
+    if (teacherBoard) { teacherBoard.destroy(); teacherBoard = null; }
+
+    const canvas = document.getElementById('modalBoardCanvas');
+    const wrap = document.getElementById('modalBoardWrap');
+    const toolbar = document.getElementById('modalBoardToolbar');
+
+    teacherBoard = createBoard({
+        canvas, wrap, toolbar,
+        onChange: (elements) => db.saveBoard(currentModalStudentId, elements)
+    });
+
+    const saved = await db.getBoard(currentModalStudentId);
+    teacherBoard.load(saved);
 }
 
 // Добавление записей учителем в модальном окне

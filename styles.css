@@ -753,6 +753,86 @@ body {
     }
 }
 
+/* Доска урока */
+.board-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px var(--shadow);
+    margin-bottom: 12px;
+}
+
+.board-toolbar button {
+    border: 0.5px solid var(--separator);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.board-toolbar button.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.board-toolbar input[type="color"] {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+}
+
+.board-toolbar input[type="range"] {
+    width: 100px;
+}
+
+.board-wrap {
+    position: relative;
+    width: 100%;
+    height: 60vh;
+    min-height: 360px;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px var(--shadow);
+    overflow: hidden;
+}
+
+.board-wrap canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    touch-action: none;
+}
+
+.board-text-editor {
+    position: absolute;
+    min-width: 60px;
+    min-height: 24px;
+    background: transparent;
+    border: 1.5px dashed var(--primary);
+    padding: 2px 4px;
+    font-size: 22px;
+    outline: none;
+    white-space: pre-wrap;
+}
+
+.hint-text {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 10px;
+}
+
 /* Улучшенная прокрутка */
 * {
     scrollbar-width: thin;

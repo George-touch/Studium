@@ -1,15 +1,22 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background with gradient -->
-  <rect width="180" height="180" rx="40" fill="url(#gradient)"/>
-  
-  <!-- Gradient definition -->
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="gradient" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#007AFF"/>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A84FF"/>
       <stop offset="100%" stop-color="#5856D6"/>
     </linearGradient>
   </defs>
-  
-  <!-- Letter û -->
-  <text x="90" y="135" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="110" font-weight="700" fill="white" text-anchor="middle">û</text>
+
+  <!-- squircle background, matches the app's existing iOS-blue-to-violet gradient -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="190" r="230" fill="#FFFFFF" opacity="0.05"/>
+
+  <!-- accent arc: carries over the circumflex from the old "Studiûm" mark as the brand's signature diacritic -->
+  <path d="M 196 132 Q 256 96 316 132" stroke="#FFFFFF" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- monogram -->
+  <text x="256" y="352" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif" font-size="240" font-weight="800" fill="#FFFFFF" text-anchor="middle">S</text>
+
+  <!-- two comma/quote marks either side: two languages in conversation -->
+  <path d="M 122 300 q -18 10 -18 34 q 0 16 14 16 q 12 0 12 -14 q 0 -8 -6 -12 q 6 -2 6 -12 q 0 -8 -8 -12 Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M 390 232 q 18 10 18 34 q 0 16 -14 16 q -12 0 -12 -14 q 0 -8 6 -12 q -6 -2 -6 -12 q 0 -8 8 -12 Z" fill="#FFFFFF" opacity="0.55"/>
 </svg>

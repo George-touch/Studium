@@ -51,6 +51,7 @@ class Database {
         this.students = this.loadData('students') || {};
         this.diaries = this.loadData('diaries') || {};
         this.vocabularies = this.loadData('vocabularies') || {};
+        this.boards = this.loadData('boards') || {};
         this.saveData('users', this.users);
     }
 
@@ -239,6 +240,20 @@ class Database {
     async firebaseDeleteDiaryEntry(userId, entryId) {
         await database.ref(`diaries/${userId}/${entryId}`).remove();
         return { success: true };
+    }
+
+    async firebaseSaveBoard(boardId, elements) {
+        await database.ref(`boards/${boardId}`).set({
+            elements,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+        });
+        return { success: true };
+    }
+
+    async firebaseGetBoard(boardId) {
+        const snapshot = await database.ref(`boards/${boardId}`).once('value');
+        const data = snapshot.val();
+        return data && data.elements ? data.elements : [];
     }
 
     async firebaseGetStudentStats(studentId) {
@@ -449,6 +464,19 @@ class Database {
         return { success: true };
     }
 
+    async localSaveBoard(boardId, elements) {
+        if (!this.boards) this.boards = this.loadData('boards') || {};
+        this.boards[boardId] = { elements, updatedAt: new Date().toISOString() };
+        this.saveData('boards', this.boards);
+        return { success: true };
+    }
+
+    async localGetBoard(boardId) {
+        if (!this.boards) this.boards = this.loadData('boards') || {};
+        const board = this.boards[boardId];
+        return board ? board.elements : [];
+    }
+
     async localGetStudentStats(studentId) {
         const diaryCount = (this.diaries[studentId] || []).length;
         const wordsCount = (this.vocabularies[studentId] || []).length;
@@ -555,6 +583,18 @@ class Database {
         return this.useFirebase
             ? await this.firebaseUpdateWordCategory(userId, wordId, category)
             : await this.localUpdateWordCategory(userId, wordId, category);
+    }
+
+    async saveBoard(boardId, elements) {
+        return this.useFirebase
+            ? await this.firebaseSaveBoard(boardId, elements)
+            : await this.localSaveBoard(boardId, elements);
+    }
+
+    async getBoard(boardId) {
+        return this.useFirebase
+            ? await this.firebaseGetBoard(boardId)
+            : await this.localGetBoard(boardId);
     }
 }
 

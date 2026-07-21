@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studiûm – Изучение языков</title>
+    <title>Skillovo – Изучение языков</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
@@ -23,7 +22,7 @@
     <div id="loginScreen" class="screen active">
         <div class="container">
             <div class="login-box">
-                <h1 class="app-logo">Studiûm</h1>
+                <h1 class="app-logo">Skillovo</h1>
                 <p class="subtitle">Система изучения языков</p>
                 <form id="loginForm">
                     <input type="text" id="loginUsername" placeholder="Логин" required>
@@ -40,7 +39,7 @@
     <div id="registerScreen" class="screen">
         <div class="container">
             <div class="login-box">
-                <h1 class="app-logo">Studiûm</h1>
+                <h1 class="app-logo">Skillovo</h1>
                 <p class="subtitle">Регистрация учителя</p>
                 <form id="registerForm">
                     <input type="text" id="registerName" placeholder="Ваше имя" required>
@@ -58,7 +57,7 @@
     <!-- Главный экран ученика -->
     <div id="studentScreen" class="screen">
         <nav class="navbar">
-            <div class="navbar-logo">Studiûm</div>
+            <div class="navbar-logo">Skillovo</div>
             <h2 id="studentName">Ученик</h2>
             <button id="logoutBtn" class="btn-text">Выход</button>
         </nav>
@@ -69,6 +68,7 @@
                 <button class="tab-btn" data-tab="vocabulary">📖 Словарик</button>
                 <button class="tab-btn" data-tab="cards">🎴 Карточки</button>
                 <button class="tab-btn" data-tab="test">✅ Тест</button>
+                <button class="tab-btn" data-tab="board">🎨 Доска</button>
             </div>
 
             <!-- Вкладка: Дневник -->
@@ -188,13 +188,36 @@
                 </div>
                 <div id="testContainer" class="test-container"></div>
             </div>
+
+            <!-- Вкладка: Доска -->
+            <div id="boardTab" class="tab-content">
+                <h3>Доска урока</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">Здесь учитель оставляет урок, а ты выполняешь задание прямо поверх него.</p>
+                <div id="studentBoardToolbar" class="board-toolbar">
+                    <button data-board-tool="select" title="Выбор">↖</button>
+                    <button data-board-tool="pen" title="Перо">✏️</button>
+                    <button data-board-tool="eraser" title="Ластик">🧽</button>
+                    <button data-board-tool="text" title="Текст">🔤</button>
+                    <button data-board-tool="image" title="Картинка">🖼️</button>
+                    <input type="file" data-board-file accept="image/*" style="display:none">
+                    <input type="color" data-board-color value="#0A84FF" title="Цвет">
+                    <input type="range" data-board-width min="1" max="24" value="4" title="Толщина">
+                    <span style="flex:1;"></span>
+                    <button data-board-delete title="Удалить выбранное">🗑️</button>
+                    <button data-board-clear title="Очистить всё" class="btn-danger" style="padding: 8px 12px;">Очистить</button>
+                </div>
+                <div id="studentBoardWrap" class="board-wrap">
+                    <canvas id="studentBoardCanvas"></canvas>
+                </div>
+                <div class="hint-text">Ctrl+V — вставить картинку из буфера обмена. Изменения сохраняются автоматически.</div>
+            </div>
         </div>
     </div>
 
     <!-- Главный экран учителя -->
     <div id="teacherScreen" class="screen">
         <nav class="navbar">
-            <div class="navbar-logo">Studiûm</div>
+            <div class="navbar-logo">Skillovo</div>
             <h2>👨‍🏫 Панель учителя</h2>
             <button id="teacherLogoutBtn" class="btn-text">Выход</button>
         </nav>
@@ -238,6 +261,7 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="modalDiary">Дневник</button>
                 <button class="tab-btn" data-tab="modalVocabulary">Словарик</button>
+                <button class="tab-btn" data-tab="modalBoard">Доска</button>
             </div>
             <div id="modalDiaryTab" class="tab-content active">
                 <div class="add-entry" style="margin-bottom: 16px;">
@@ -258,6 +282,26 @@
                 </div>
                 <button id="bulkAddModalBtn" class="btn-secondary" style="margin-bottom: 16px;">📋 Добавить список слов</button>
                 <div id="modalVocabularyContent"></div>
+            </div>
+            <div id="modalBoardTab" class="tab-content">
+                <p style="color: var(--text-secondary); margin-bottom: 12px;">Составь урок или проверь домашнее задание ученика на одной доске.</p>
+                <div id="modalBoardToolbar" class="board-toolbar">
+                    <button data-board-tool="select" title="Выбор">↖</button>
+                    <button data-board-tool="pen" title="Перо">✏️</button>
+                    <button data-board-tool="eraser" title="Ластик">🧽</button>
+                    <button data-board-tool="text" title="Текст">🔤</button>
+                    <button data-board-tool="image" title="Картинка">🖼️</button>
+                    <input type="file" data-board-file accept="image/*" style="display:none">
+                    <input type="color" data-board-color value="#0A84FF" title="Цвет">
+                    <input type="range" data-board-width min="1" max="24" value="4" title="Толщина">
+                    <span style="flex:1;"></span>
+                    <button data-board-delete title="Удалить выбранное">🗑️</button>
+                    <button data-board-clear title="Очистить всё" class="btn-danger" style="padding: 8px 12px;">Очистить</button>
+                </div>
+                <div id="modalBoardWrap" class="board-wrap">
+                    <canvas id="modalBoardCanvas"></canvas>
+                </div>
+                <div class="hint-text">Ctrl+V — вставить картинку из буфера обмена. Изменения сохраняются автоматически.</div>
             </div>
         </div>
     </div>

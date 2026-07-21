@@ -1,10 +1,11 @@
-const CACHE_NAME = 'vocabulary-app-v1';
+const CACHE_NAME = 'skillovo-app-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
   '/database.js',
+  '/board.js',
   '/manifest.json'
 ];
 
