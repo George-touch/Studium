@@ -195,21 +195,35 @@
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">Здесь учитель оставляет урок, а ты выполняешь задание прямо поверх него.</p>
                 <div id="studentBoardToolbar" class="board-toolbar">
                     <button data-board-tool="select" title="Выбор">↖</button>
+                    <button data-board-tool="pan" title="Рука (панорамирование)">✋</button>
                     <button data-board-tool="pen" title="Перо">✏️</button>
                     <button data-board-tool="eraser" title="Ластик">🧽</button>
                     <button data-board-tool="text" title="Текст">🔤</button>
+                    <button data-board-tool="rect" title="Прямоугольник">▭</button>
+                    <button data-board-tool="ellipse" title="Эллипс">⬭</button>
+                    <button data-board-tool="arrow" title="Стрелка">➚</button>
+                    <button data-board-tool="sticky" title="Стикер">🗒️</button>
                     <button data-board-tool="image" title="Картинка">🖼️</button>
                     <input type="file" data-board-file accept="image/*" style="display:none">
-                    <input type="color" data-board-color value="#0A84FF" title="Цвет">
+                    <span class="board-sep"></span>
+                    <input type="color" data-board-color value="#0A84FF" title="Цвет линии / текста">
+                    <input type="color" data-board-fill value="#FFE58A" title="Цвет заливки">
                     <input type="range" data-board-width min="1" max="24" value="4" title="Толщина">
-                    <span style="flex:1;"></span>
+                    <span class="board-sep"></span>
+                    <button data-board-undo title="Отменить (Ctrl+Z)">↩️</button>
+                    <button data-board-duplicate title="Дублировать (Ctrl+D)">📑</button>
                     <button data-board-delete title="Удалить выбранное">🗑️</button>
                     <button data-board-clear title="Очистить всё" class="btn-danger" style="padding: 8px 12px;">Очистить</button>
+                    <span style="flex:1;"></span>
+                    <button data-board-zoom-out title="Уменьшить">➖</button>
+                    <span data-board-zoom-level class="board-zoom-level">100%</span>
+                    <button data-board-zoom-in title="Увеличить">➕</button>
+                    <button data-board-zoom-reset title="Сбросить масштаб">Сброс</button>
                 </div>
                 <div id="studentBoardWrap" class="board-wrap">
                     <canvas id="studentBoardCanvas"></canvas>
                 </div>
-                <div class="hint-text">Ctrl+V — вставить картинку из буфера обмена. Изменения сохраняются автоматически.</div>
+                <div class="hint-text">✋ / пробел+перетаскивание / средняя кнопка мыши — панорамирование · колесо мыши — прокрутка, Ctrl+колесо или щипок — масштаб · двойной клик по тексту/стикеру — редактировать · Ctrl+Z — отменить, Ctrl+D — дублировать. Сохраняется автоматически.</div>
             </div>
         </div>
     </div>
@@ -287,21 +301,35 @@
                 <p style="color: var(--text-secondary); margin-bottom: 12px;">Составь урок или проверь домашнее задание ученика на одной доске.</p>
                 <div id="modalBoardToolbar" class="board-toolbar">
                     <button data-board-tool="select" title="Выбор">↖</button>
+                    <button data-board-tool="pan" title="Рука (панорамирование)">✋</button>
                     <button data-board-tool="pen" title="Перо">✏️</button>
                     <button data-board-tool="eraser" title="Ластик">🧽</button>
                     <button data-board-tool="text" title="Текст">🔤</button>
+                    <button data-board-tool="rect" title="Прямоугольник">▭</button>
+                    <button data-board-tool="ellipse" title="Эллипс">⬭</button>
+                    <button data-board-tool="arrow" title="Стрелка">➚</button>
+                    <button data-board-tool="sticky" title="Стикер">🗒️</button>
                     <button data-board-tool="image" title="Картинка">🖼️</button>
                     <input type="file" data-board-file accept="image/*" style="display:none">
-                    <input type="color" data-board-color value="#0A84FF" title="Цвет">
+                    <span class="board-sep"></span>
+                    <input type="color" data-board-color value="#0A84FF" title="Цвет линии / текста">
+                    <input type="color" data-board-fill value="#FFE58A" title="Цвет заливки">
                     <input type="range" data-board-width min="1" max="24" value="4" title="Толщина">
-                    <span style="flex:1;"></span>
+                    <span class="board-sep"></span>
+                    <button data-board-undo title="Отменить (Ctrl+Z)">↩️</button>
+                    <button data-board-duplicate title="Дублировать (Ctrl+D)">📑</button>
                     <button data-board-delete title="Удалить выбранное">🗑️</button>
                     <button data-board-clear title="Очистить всё" class="btn-danger" style="padding: 8px 12px;">Очистить</button>
+                    <span style="flex:1;"></span>
+                    <button data-board-zoom-out title="Уменьшить">➖</button>
+                    <span data-board-zoom-level class="board-zoom-level">100%</span>
+                    <button data-board-zoom-in title="Увеличить">➕</button>
+                    <button data-board-zoom-reset title="Сбросить масштаб">Сброс</button>
                 </div>
                 <div id="modalBoardWrap" class="board-wrap">
                     <canvas id="modalBoardCanvas"></canvas>
                 </div>
-                <div class="hint-text">Ctrl+V — вставить картинку из буфера обмена. Изменения сохраняются автоматически.</div>
+                <div class="hint-text">✋ / пробел+перетаскивание / средняя кнопка мыши — панорамирование · колесо мыши — прокрутка, Ctrl+колесо или щипок — масштаб · двойной клик по тексту/стикеру — редактировать · Ctrl+Z — отменить, Ctrl+D — дублировать. Сохраняется автоматически.</div>
             </div>
         </div>
     </div>
